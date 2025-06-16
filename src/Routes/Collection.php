@@ -28,13 +28,12 @@ class Collection extends \Illuminate\Support\Collection
     {
         $this->guardAgainstZeroRoutes($routes);
 
-        $results = [];
-
-        foreach ($routes as $route) {
-            $results[] = $this->getRouteInformation($route, $filter, $namespace);
-        }
-
-        return array_values(array_filter($results));
+        return collect($routes)
+            ->sortBy(fn ($route) => $route->uri()) // Sort routes by their URI for stable order
+            ->map(fn ($route) => $this->getRouteInformation($route, $filter, $namespace))
+            ->filter() // Remove falsey results
+            ->values() // Reindex array numerically
+            ->all();
     }
 
     /**
